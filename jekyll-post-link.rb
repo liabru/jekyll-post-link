@@ -65,6 +65,12 @@ eos
 
       def render(context)
         site = context.registers[:site]
+        
+        # check if the site is in staging mode and use dummy links
+        if not Dir["./_stash/*"].empty?
+          # staging mode
+          return "<a href=\"http://flohei.de\">Temporary Staging Link</a>" 
+        end
 
         site.posts.each do |p|
           if @post == p
