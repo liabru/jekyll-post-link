@@ -1,15 +1,16 @@
 # post_link
-# http://brm.io/jekyll-post-links/
+# https://github.com/liabru/jekyll-post-link
 # 
 # usage {% post_link post text %}
+# License: MIT
 # 
 # Where post is a post in the usual date-slug format.
 # If text is specified, it uses that as the anchor text, otherwise it's the post title.
-# 
 # Output is a full anchor tag. Broken links will be detected by compiler.
 # 
-# based on post_url.rb
+# Based on post_url.rb (licensed under MIT)
 # https://github.com/jekyll/jekyll/blob/master/lib/jekyll/tags/post_url.rb
+# Copyright (c) 2008-2017 Tom Preston-Werner and Jekyll contributors
 
 module Jekyll
   module Tags
