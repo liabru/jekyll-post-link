@@ -1,13 +1,13 @@
 # post_link
 # https://github.com/liabru/jekyll-post-link
-# 
+#
 # usage {% post_link post text %}
 # License: MIT
-# 
+#
 # Where post is a post in the usual date-slug format.
 # If text is specified, it uses that as the anchor text, otherwise it's the post title.
 # Output is a full anchor tag. Broken links will be detected by compiler.
-# 
+#
 # Based on post_url.rb (licensed under MIT)
 # https://github.com/jekyll/jekyll/blob/master/lib/jekyll/tags/post_url.rb
 # Copyright (c) 2008-2017 Tom Preston-Werner and Jekyll contributors
@@ -15,16 +15,21 @@
 module Jekyll
   module Tags
     class PostLinkComparer
-      MATCHER = /^(.+\/)*(\d+-\d+-\d+)-([^\s]*)(\s.*)?$/
+      MATCHER = %r!^(.+/)*(\d+-\d+-\d+)-(.*)$!.freeze
 
-      attr_accessor :date, :slug, :text
+      attr_reader :path, :date, :slug, :name
 
       def initialize(name)
-        all, path, date, slug, text = *name.sub(/^\//, "").match(MATCHER)
-        raise ArgumentError.new("'#{name}' does not contain valid date and/or title") unless all
-        @slug = path ? path + slug : slug
-        @date = Time.parse(date)
-        @text = text
+        @name = name
+
+        all, @path, @date, @slug = *name.sub(%r!^/!, "").match(MATCHER)
+        unless all
+          raise Jekyll::Errors::InvalidPostNameError,
+                "'#{name}' does not contain valid date and/or title."
+        end
+
+        basename_pattern = "#{date}-#{Regexp.escape(slug)}\\.[^.]+"
+        @name_regex = %r!^_posts/#{path}#{basename_pattern}|^#{path}_posts/?#{basename_pattern}!
       end
 
       def ==(other)
@@ -32,7 +37,7 @@ module Jekyll
 
         # disabled the date check below (used in post_url.rb)
         # otherwise posts with a custom date front-matter will fail if it's different to the slug
-        
+
         #&& date.year  == other.date.year &&
         #date.month == other.date.month &&
         #date.day   == other.date.day
@@ -40,11 +45,11 @@ module Jekyll
 
       private
       def post_slug(other)
-        path = other.name.split("/")[0...-1].join("/")
+        path = other.basename.split("/")[0...-1].join("/")
         if path.nil? || path == ""
-          other.slug
+          other.data["slug"]
         else
-          path + '/' + other.slug
+          path + '/' + other.data["slug"]
         end
       end
     end
@@ -67,9 +72,9 @@ eos
       def render(context)
         site = context.registers[:site]
 
-        site.posts.each do |p|
+        site.posts.docs.each do |p|
           if @post == p
-            return "<a href=\"#{ p.url }\">#{ @post.text ? @post.text.strip! : p.title }</a>"
+            return "<a href=\"#{ p.url }\">#{ p.data["title"] }</a>"
           end
         end
 
